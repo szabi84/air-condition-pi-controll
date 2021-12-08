@@ -1,0 +1,9 @@
+{
+  "apps": [
+    {
+      "name": "hvac-controll",
+      "script": "yarn",
+      "args" : "start"
+    }
+  ]
+}
