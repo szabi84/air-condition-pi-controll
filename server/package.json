@@ -1,0 +1,29 @@
+{
+  "name": "air-condition-pi-controll",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "export NODE_ENV=dev NODE_CONFIG_DIR=./src/config/ && nodemon -w src --exec \"babel-node src/app.js --presets es2015,stage-0\"",
+    "test": "export NODE_ENV=test NODE_CONFIG_DIR=./src/config/ && mocha --timeout 10000 --compilers js:babel-core/register ./src/test/*.js "
+  },
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "config": "^1.26.2",
+    "ds18b20-raspi": "^0.3.6",
+    "express": "^4.15.3",
+    "gree-hvac-client": "^1.3.1",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "eslint": "^6.5.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "nodemon": "^1.11.0"
+  }
+}
