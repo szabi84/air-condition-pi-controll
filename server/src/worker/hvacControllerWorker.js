@@ -60,7 +60,7 @@ const run = async () => {
     if (tempC < temperatureSet - 0.5) {
       // start heating period
     }
-    await delay(5000)
+    await delay(60000)
   }
 }
 
