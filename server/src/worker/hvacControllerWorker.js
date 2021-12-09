@@ -1,6 +1,16 @@
+const ThingSpeakClient = require('thingspeakclient')
+const _ = require('lodash')
 const { readCurrentTemperature } = require('../helpers/temperature')
 const { delay } = require('../helpers/util')
-const _ = require('lodash')
+
+const client = new ThingSpeakClient()
+client.attachChannel(1602965, { writeKey: 'U2RG7MRT9WOZ7TMI' }, (err, res) => {
+  if (err) {
+    process.send(err)
+  } else {
+    process.send('Thingspeak is ok')
+  }
+})
 
 let temperatureSet = _.isNumber(process.argv[2]) ? process.argv[2] : process.env.DEFAULT_TEMPERATURE
 console.log(`Actual temperature is set: ${temperatureSet}°C`)
@@ -33,6 +43,14 @@ const run = async () => {
     if (tempC) {
       console.log(`It's ${tempC}°C currently`)
       process.send(`It's ${tempC}°C currently`)
+      client.updateChannel(1602965, { field1: tempC }, function (err, resp) {
+        if (err) {
+          console.log(err)
+        }
+        if (!err && resp > 0) {
+          process.send('Thinkspeak update successfully. Entry number was: ' + resp)
+        }
+      })
     } else {
       process.send('Failed to read temperature')
     }
