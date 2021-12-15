@@ -3,6 +3,7 @@ const _ = require('lodash')
 const { readCurrentTemperature } = require('../helpers/temperature')
 const { delay } = require('../helpers/util')
 const AirCondition = require('../helpers/aircondition')
+const moment = require('moment')
 
 const MIN_STATE_TIME = 1000 * 60 * 10 // 20 minutes
 
@@ -15,7 +16,7 @@ let lastChange = 0
 const airConditionClient = new AirCondition()
 airConditionClient.getStatus()
   .then((status) => {
-    process.send(`Aircondition actual status: ${status}`)
+    process.send(`Aircondition actual status: ${JSON.stringify(status)}`)
     if (status) {
       lastChange = Date.now()
       if (status.properties.power === 'on') {
@@ -69,20 +70,28 @@ const run = async () => {
     }
 
     if (Date.now() - lastChange > MIN_STATE_TIME) {
+      process.send('Min state time is over.')
       if (power && tempC > temperatureSet + 0.4) {
         // start shutdown period
         await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet), 0)
+        power = 0
+        lastChange = Date.now()
         process.send('Air condition power OFF')
       }
       if (!power && tempC < temperatureSet - 0.4) {
         // start heating period
         await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet + 1.4), 1)
+        power = 1
+        lastChange = Date.now()
         process.send(`Air condition power ON with ${Math.round(temperatureSet + 1.4)} °C`)
       }
+    } else {
+      process.send(`${moment.duration(Date.now() - lastChange).humanize()} left from min state time.`)
     }
 
     const thinkSpeakObject = {}
     const status = await airConditionClient.getStatus()
+    process.send(`Aircondition actual status: ${JSON.stringify(status)}`)
     if (tempC) {
       thinkSpeakObject.field1 = tempC
     }
