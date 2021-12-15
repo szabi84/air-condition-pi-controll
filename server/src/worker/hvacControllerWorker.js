@@ -2,6 +2,30 @@ const ThingSpeakClient = require('thingspeakclient')
 const _ = require('lodash')
 const { readCurrentTemperature } = require('../helpers/temperature')
 const { delay } = require('../helpers/util')
+const AirCondition = require('../helpers/aircondition')
+
+const MIN_STATE_TIME = 1000 * 60 * 10 // 20 minutes
+
+let temperatureSet = _.isNumber(process.argv[2]) ? process.argv[2] : process.env.DEFAULT_TEMPERATURE
+console.log(`Actual temperature is set: ${temperatureSet}°C`)
+let exit = false
+let power = 0
+let lastChange = 0
+
+const airConditionClient = new AirCondition()
+airConditionClient.getStatus()
+  .then((status) => {
+    if (status) {
+      lastChange = Date.now()
+      if (status.properties.power === 'on') {
+        power = 1
+      } else {
+        power = 0
+      }
+    } else {
+      power = 0
+    }
+  })
 
 const client = new ThingSpeakClient()
 client.attachChannel(1602965, { writeKey: 'U2RG7MRT9WOZ7TMI' }, (err, res) => {
@@ -11,10 +35,6 @@ client.attachChannel(1602965, { writeKey: 'U2RG7MRT9WOZ7TMI' }, (err, res) => {
     process.send('Thingspeak is ok')
   }
 })
-
-let temperatureSet = _.isNumber(process.argv[2]) ? process.argv[2] : process.env.DEFAULT_TEMPERATURE
-console.log(`Actual temperature is set: ${temperatureSet}°C`)
-let exit = false
 
 process.send(`Worker started with args ${process.argv}`)
 process.send(`Worker started with env ${JSON.stringify(process.env)}`)
@@ -43,23 +63,40 @@ const run = async () => {
     if (tempC) {
       console.log(`It's ${tempC}°C currently`)
       process.send(`It's ${tempC}°C currently`)
-      client.updateChannel(1602965, { field1: tempC }, function (err, resp) {
-        if (err) {
-          console.log(err)
-        }
-        if (!err && resp > 0) {
-          process.send('Thinkspeak update successfully. Entry number was: ' + resp)
-        }
-      })
     } else {
       process.send('Failed to read temperature')
     }
-    if (tempC > temperatureSet + 0.5) {
-      // start shutdown period
+
+    if (Date.now() - lastChange > MIN_STATE_TIME) {
+      if (power && tempC > temperatureSet + 0.4) {
+        // start shutdown period
+        await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet), 0)
+        process.send('Air condition power OFF')
+      }
+      if (!power && tempC < temperatureSet - 0.4) {
+        // start heating period
+        await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet + 1.4), 1)
+        process.send(`Air condition power ON with ${Math.round(temperatureSet + 1.4)} °C`)
+      }
     }
-    if (tempC < temperatureSet - 0.5) {
-      // start heating period
+
+    const thinkSpeakObject = {}
+    const status = await airConditionClient.getStatus()
+    if (tempC) {
+      thinkSpeakObject.field1 = tempC
     }
+    if (status) {
+      thinkSpeakObject.field2 = status.properties.power === 'on' ? 1 : 0
+    }
+
+    client.updateChannel(1602965, thinkSpeakObject, function (err, resp) {
+      if (err) {
+        console.log(err)
+      }
+      if (!err && resp > 0) {
+        process.send('Thinkspeak update successfully. Entry number was: ' + resp)
+      }
+    })
     await delay(60000)
   }
 }

@@ -1,57 +1,81 @@
-import Gree from 'gree-hvac-client'
-import { delay } from './util'
+const Gree = require('gree-hvac-client')
+const { delay } = require('./util')
 
 const RETRY_COUNT = 5
-const client = new Gree.Client({
-  host: '192.168.0.111',
-  debug: false
-})
-let connected = false
 
-client.on('connect', (client) => {
-  console.log('connected to', client.getDeviceId())
-  connected = true
-})
+class AirCondition {
+  constructor () {
+    this.client = new Gree.Client({
+      host: '192.168.0.111',
+      debug: false
+    })
+    this.lastProperties = {}
+    this.connected = false
 
-client.on('disconnect', () => {
-  console.log('disconnected')
-  connected = false
-})
+    this.client.on('connect', (client) => {
+      console.log('connected to', client.getDeviceId())
+      this.connected = true
+    })
 
-client.on('update', (updatedProperties, properties) => {
-  console.log('=================== UPDATED STATUS ===================')
-  console.log(new Date().toISOString())
-  console.log(updatedProperties, properties)
-})
+    this.client.on('disconnect', () => {
+      console.log('disconnected')
+      this.connected = false
+    })
 
-client.on('connect', () => {
-  client.setProperty(Gree.PROPERTY.power, Gree.VALUE.power.on)
-  client.setProperty(Gree.PROPERTY.quiet, Gree.VALUE.quiet.mode1)
-  client.setProperty(Gree.PROPERTY.temperature, 22)
-})
+    this.client.on('update', (updatedProperties, properties) => {
+      console.log('=================== UPDATED STATUS ===================')
+      console.log(new Date().toISOString())
+      console.log(properties)
+      this.lastProperties = {
+        timestamp: Date.now(),
+        properties: properties
+      }
+    })
 
-client.on('success', (updatedProperties) => {
-  console.log('properties updated:', updatedProperties)
-})
+    this.client.on('success', (updatedProperties) => {
+      console.log('properties updated:', updatedProperties)
+    })
+  }
 
-const updateAirConditionStatus = async (temperature, power) => {
-  let isConnected = connected
-  for (let i = 0; i < RETRY_COUNT && !isConnected; i++) {
+  async connect () {
+    await delay(3000)
+    if (!this.connected) {
+      this.client.connect()
+    }
     await delay(1000)
-    isConnected = connected
+    let isConnected = this.connected
+    for (let i = 0; i < RETRY_COUNT && !isConnected; i++) {
+      this.client.connect()
+      await delay(1000)
+      isConnected = this.connected
+    }
   }
-  if (!isConnected) {
-    throw new Error('Air Condition is not connected!')
+
+  async updateAirConditionStatus (temperature, power) {
+    await this.connect()
+    if (!this.connected) {
+      return false
+    }
+    const properties = {}
+    if (power) {
+      properties[Gree.PROPERTY.power] = Gree.VALUE.power.on
+    } else {
+      properties[Gree.PROPERTY.power] = Gree.VALUE.power.off
+    }
+    properties[Gree.PROPERTY.quiet] = Gree.VALUE.quiet.mode2
+    properties[Gree.PROPERTY.temperature] = temperature
+    this.client.setProperties(properties)
+    return true
   }
-  if (power) {
-    client.setProperty(Gree.PROPERTY.power, Gree.VALUE.power.on)
-  } else {
-    client.setProperty(Gree.PROPERTY.power, Gree.VALUE.power.off)
+
+  async getStatus () {
+    await this.connect()
+    if (!this.connected) {
+      return undefined
+    }
+
+    return this.lastProperties
   }
-  client.setProperty(Gree.PROPERTY.quiet, Gree.VALUE.quiet.mode1)
-  client.setProperty(Gree.PROPERTY.temperature, temperature)
 }
 
-module.exports = {
-  updateAirConditionStatus
-}
+module.exports = AirCondition
