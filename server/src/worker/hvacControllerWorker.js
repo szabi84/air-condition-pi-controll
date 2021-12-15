@@ -15,6 +15,7 @@ let lastChange = 0
 const airConditionClient = new AirCondition()
 airConditionClient.getStatus()
   .then((status) => {
+    process.send(`Aircondition actual status: ${status}`)
     if (status) {
       lastChange = Date.now()
       if (status.properties.power === 'on') {
