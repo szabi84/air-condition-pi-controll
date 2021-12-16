@@ -8,6 +8,10 @@ const setTemperature = (temperature) => {
   _sendMessageWorker({ type: 'SET_TEMPERATURE', value: temperature })
 }
 
+const setMonitoring = (onlyMonitoring) => {
+  _sendMessageWorker({ type: 'SET_MONITORING', value: onlyMonitoring })
+}
+
 const exitWorker = () => {
   _sendMessageWorker({ type: 'EXIT' })
 }
@@ -41,5 +45,6 @@ const run = (setTemperature) => {
 module.exports = {
   run,
   setTemperature,
+  setMonitoring,
   exitWorker
 }
