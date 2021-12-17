@@ -59,6 +59,12 @@ const init = async () => {
     }
   })
 
+  process.send(`Initial state:
+    temperatureSet = ${temperatureSet}
+    onlyMonitoring = ${onlyMonitoring}
+    exit = ${exit}
+    power = ${power}
+    lastChange = ${new Date(lastChange).toISOString()}`)
   process.send('Worker initialization is finished')
 }
 
@@ -66,6 +72,12 @@ const run = async () => {
   // eslint-disable-next-line no-unmodified-loop-condition
   while (!exit) {
     process.send('---- Iteration started ----')
+    process.send(`Actual state:
+    temperatureSet = ${temperatureSet}
+    onlyMonitoring = ${onlyMonitoring}
+    exit = ${exit}
+    power = ${power}
+    lastChange = ${new Date(lastChange).toISOString()}`)
     const tempC = await readCurrentTemperature()
     if (tempC) {
       process.send(`It's ${tempC}°C currently`)
