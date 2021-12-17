@@ -5,7 +5,7 @@ const { delay } = require('../helpers/util')
 const AirCondition = require('../helpers/aircondition')
 const moment = require('moment')
 
-const MIN_STATE_TIME = 1000 * 60 * 5 // 20 minutes
+const MIN_STATE_TIME = 1000 * 60 * 3 // 20 minutes
 let temperatureSet = _.isNumber(process.argv[2]) ? process.argv[2] : process.env.DEFAULT_TEMPERATURE
 let onlyMonitoring = true
 let airConditionClient
