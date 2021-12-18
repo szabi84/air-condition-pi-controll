@@ -5,7 +5,7 @@ const { delay } = require('../helpers/util')
 const AirCondition = require('../helpers/aircondition')
 const moment = require('moment')
 
-const MIN_STATE_TIME = 1000 * 60 * 3 // 20 minutes
+const MIN_STATE_TIME = 1000 * 60 * 15 // 20 minutes
 let temperatureSet = _.isNumber(process.argv[2]) ? Number(process.argv[2]) : Number(process.env.DEFAULT_TEMPERATURE)
 let onlyMonitoring = true
 let airConditionClient
@@ -118,7 +118,7 @@ const run = async () => {
     }
 
     const thinkSpeakObject = {
-      field3: onlyMonitoring ? 1 : 0
+      field4: onlyMonitoring ? 1 : 0
     }
     const status = await airConditionClient.getStatus()
     process.send(`Aircondition actual status: ${JSON.stringify(status)}`)
@@ -127,6 +127,7 @@ const run = async () => {
     }
     if (status) {
       thinkSpeakObject.field2 = status.properties.power === 'on' ? 1 : 0
+      thinkSpeakObject.field3 = status.properties.temperature
       power = status.properties.power === 'on' ? 1 : 0
     }
 
