@@ -88,6 +88,10 @@ const run = async () => {
     if (!onlyMonitoring) {
       if (Date.now() - lastChange > MIN_STATE_TIME) {
         process.send('Min state time is over.')
+
+        process.send(`Evaluation 1:
+        power === 1 => ${power === 1}
+        Number(${tempC}) > Number(${temperatureSet} + 0.4) => ${Number(tempC) > Number(temperatureSet + 0.4)}`)
         if (power === 1 && (Number(tempC) > Number(temperatureSet + 0.4))) {
           // start shutdown period
           process.send('Air condition power OFF 1')
@@ -96,6 +100,10 @@ const run = async () => {
           lastChange = Date.now()
           process.send('Air condition power OFF')
         }
+
+        process.send(`Evaluation 2:
+        power === 0 => ${power === 0}
+        Number(${tempC}) < Number(${temperatureSet} - 0.4) => ${Number(tempC) < Number(temperatureSet - 0.4)}`)
         if (power === 0 && (Number(tempC) < Number(temperatureSet - 0.4))) {
           // start heating period
           process.send('Air condition power ON 1')
