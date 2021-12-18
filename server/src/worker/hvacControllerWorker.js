@@ -6,7 +6,7 @@ const AirCondition = require('../helpers/aircondition')
 const moment = require('moment')
 
 const MIN_STATE_TIME = 1000 * 60 * 3 // 20 minutes
-let temperatureSet = _.isNumber(process.argv[2]) ? process.argv[2] : process.env.DEFAULT_TEMPERATURE
+let temperatureSet = _.isNumber(process.argv[2]) ? Number(process.argv[2]) : Number(process.env.DEFAULT_TEMPERATURE)
 let onlyMonitoring = true
 let airConditionClient
 let thingSpeakClient
@@ -17,7 +17,7 @@ let lastChange = 0
 process.on('message', ({ type, value }) => {
   switch (type) {
     case 'SET_TEMPERATURE':
-      temperatureSet = value
+      temperatureSet = Number(value)
       process.send(`The temperature is set to ${value}°C`)
       break
     case 'SET_MONITORING':
@@ -91,8 +91,8 @@ const run = async () => {
 
         process.send(`Evaluation 1:
         power === 1 => ${power === 1}
-        Number(${tempC}) > Number(${temperatureSet} + 0.4) => ${Number(tempC) > Number(temperatureSet + 0.4)}`)
-        if (power === 1 && (Number(tempC) > Number(temperatureSet + 0.4))) {
+        Number(${tempC}) > Number(${temperatureSet} + 0.4) => ${Number(tempC) > temperatureSet + 0.4}`)
+        if (power === 1 && (Number(tempC) > temperatureSet + 0.4)) {
           // start shutdown period
           process.send('Air condition power OFF 1')
           await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet), 0)
@@ -103,8 +103,8 @@ const run = async () => {
 
         process.send(`Evaluation 2:
         power === 0 => ${power === 0}
-        Number(${tempC}) < Number(${temperatureSet} - 0.4) => ${Number(tempC) < Number(temperatureSet - 0.4)}`)
-        if (power === 0 && (Number(tempC) < Number(temperatureSet - 0.4))) {
+        Number(${tempC}) < Number(${temperatureSet} - 0.4) => ${Number(tempC) < temperatureSet - 0.4}`)
+        if (power === 0 && (Number(tempC) < temperatureSet - 0.4)) {
           // start heating period
           process.send('Air condition power ON 1')
           await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet + 1.4), 1)
