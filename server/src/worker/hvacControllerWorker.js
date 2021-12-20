@@ -117,8 +117,10 @@ const run = async () => {
       }
     }
 
+    const remaining = MIN_STATE_TIME - (Date.now() - lastChange) > 0 ? MIN_STATE_TIME - (Date.now() - lastChange) : 0
     const thinkSpeakObject = {
-      field4: onlyMonitoring ? 1 : 0
+      field4: onlyMonitoring ? 1 : 0,
+      field5: remaining
     }
     const status = await airConditionClient.getStatus()
     process.send(`Aircondition actual status: ${JSON.stringify(status)}`)
