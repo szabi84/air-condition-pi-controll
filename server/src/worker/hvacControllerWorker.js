@@ -117,7 +117,7 @@ const run = async () => {
       }
     }
 
-    const remaining = MIN_STATE_TIME - (Date.now() - lastChange) > 0 ? MIN_STATE_TIME - (Date.now() - lastChange) : 0
+    const remaining = MIN_STATE_TIME - (Date.now() - lastChange) > 0 ? Math.round((MIN_STATE_TIME - (Date.now() - lastChange)) / 1000) : 0
     const thinkSpeakObject = {
       field4: onlyMonitoring ? 1 : 0,
       field5: remaining
