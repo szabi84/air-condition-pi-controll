@@ -1,9 +1,10 @@
+require('debug').enable('*')
 const debug = require('debug')('app')
 const express = require('express')
-const bodyParser = require(')body-parser')
-const config = require(')config')
-const routes = require(')./routes')
-const hvacController = require(')./worker/hvacController')
+const bodyParser = require('body-parser')
+const config = require('config')
+const routes = require('./routes')
+const hvacController = require('./worker/hvacController')
 
 const app = express()
 
