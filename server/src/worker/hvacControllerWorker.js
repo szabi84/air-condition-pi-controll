@@ -53,7 +53,7 @@ const init = async () => {
   thingSpeakClient = new ThingSpeakClient()
   thingSpeakClient.attachChannel(1602965, { writeKey: 'U2RG7MRT9WOZ7TMI' }, (err, res) => {
     if (err) {
-      process.send(err)
+      process.send(`Thingspeak is offline: ${err}`)
     } else {
       process.send('Thingspeak is online')
     }
@@ -135,10 +135,10 @@ const run = async () => {
 
     thingSpeakClient.updateChannel(1602965, thinkSpeakObject, function (err, resp) {
       if (err) {
-        process.send('Thinkspeak update failed: ', err)
+        process.send(`Thinkspeak update failed: : ${err}`)
       }
       if (!err && resp > 0) {
-        process.send('Thinkspeak update successfully. Entry number was: ' + resp)
+        process.send(`Thinkspeak update successfully. Entry number was: : ${resp}`)
       }
     })
     process.send('Iteration finished')
@@ -147,11 +147,11 @@ const run = async () => {
 }
 
 process.on('uncaughtException', err => {
-  process.send('Got an uncaughtException', err)
+  process.send(`Got an uncaughtException: ${err}`)
   process.exit(1)
 })
 process.on('unhandledRejection', err => {
-  process.send('Got an  unhandledRejection', err)
+  process.send(`Got an  unhandledRejection: ${err}`)
   process.exit(1)
 })
 
@@ -163,5 +163,5 @@ init()
     process.send('Process finished without problem')
   })
   .catch(err => {
-    process.send('Process finished with error: ', err)
+    process.send(`Process finished with error: ${err}`)
   })
