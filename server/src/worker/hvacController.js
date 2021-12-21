@@ -1,6 +1,6 @@
+const debug = require('debug')('hvac-controller')
 const { fork } = require('child_process')
 const path = require('path')
-const { debug } = require('nodemon/lib/utils')
 
 const DEFAULT_TEMPERATURE = 21
 let worker
@@ -45,11 +45,11 @@ const run = (setTemperature) => {
   })
 
   worker.stdout.on('data', (data) => {
-    debug('Worker stdout: ', data)
+    debug('Worker stdout: ', data.toString('utf8'))
   })
 
   worker.stderr.on('data', (data) => {
-    debug('Worker stderr: ', data)
+    debug('Worker stderr: ', data.toString('utf8'))
   })
 
   worker.on('exit', (code) => {
