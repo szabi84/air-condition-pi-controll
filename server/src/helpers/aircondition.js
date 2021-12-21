@@ -1,3 +1,4 @@
+const debug = require('debug')('air-condition')
 const Gree = require('gree-hvac-client')
 const { delay } = require('./util')
 
@@ -13,19 +14,19 @@ class AirCondition {
     this.connected = false
 
     this.client.on('connect', (client) => {
-      console.log('connected to', client.getDeviceId())
+      debug('connected to', client.getDeviceId())
       this.connected = true
     })
 
     this.client.on('disconnect', () => {
-      console.log('disconnected')
+      debug('disconnected')
       this.connected = false
     })
 
     this.client.on('update', (updatedProperties, properties) => {
-      console.log('=================== UPDATED STATUS ===================')
-      console.log(new Date().toISOString())
-      console.log(properties)
+      debug('=================== UPDATED STATUS ===================')
+      debug(new Date().toISOString())
+      debug(properties)
       this.lastProperties = {
         timestamp: Date.now(),
         properties: properties
@@ -33,7 +34,7 @@ class AirCondition {
     })
 
     this.client.on('success', (updatedProperties) => {
-      console.log('properties updated:', updatedProperties)
+      debug('properties updated:', updatedProperties)
     })
   }
 

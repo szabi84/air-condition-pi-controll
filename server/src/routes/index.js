@@ -7,21 +7,8 @@ routes.get('/', (req, res) => {
   res.status(200).json({ message: 'Ok' })
 })
 
-routes.post('/settemp', (req, res) => {
-  const temperature = req.body.temperature
-  if (!temperature) {
-    res.status(400).json({ message: 'temperature is required and number' })
-  }
-  hvacController.setTemperature(temperature)
-  res.status(200).json({ message: 'Ok' })
-})
-
-routes.post('/setmonitoring', (req, res) => {
-  const monitoring = req.body.onlyMonitoring
-  if (monitoring === undefined) {
-    res.status(400).json({ message: 'temperature is required and number' })
-  }
-  hvacController.setMonitoring(monitoring)
+routes.post('/settings', (req, res) => {
+  hvacController.updateSettings(req.body)
   res.status(200).json({ message: 'Ok' })
 })
 

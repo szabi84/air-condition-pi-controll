@@ -8,6 +8,7 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "config": "^1.26.2",
+    "debug": "^4.3.3",
     "ds18b20-raspi": "^0.3.6",
     "express": "^4.15.3",
     "gree-hvac-client": "^1.3.1",

@@ -1,3 +1,4 @@
+const debug = require('debug')('temperature')
 const sensor = require('ds18b20-raspi')
 const { delay } = require('./util')
 
@@ -6,9 +7,9 @@ const RETRY_COUNT = 3
 const readCurrentTemperature = async () => {
   sensor.list((err, deviceIds) => {
     if (err) {
-      console.log(err)
+      debug(err)
     } else {
-      console.log(deviceIds)
+      debug(deviceIds)
     }
   })
   let tempC = null

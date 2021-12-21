@@ -1,8 +1,9 @@
-import express from 'express'
-import bodyParser from 'body-parser'
-import config from 'config'
-import routes from './routes'
-import hvacController from './worker/hvacController'
+const debug = require('debug')('app')
+const express = require('express')
+const bodyParser = require(')body-parser')
+const config = require(')config')
+const routes = require(')./routes')
+const hvacController = require(')./worker/hvacController')
 
 const app = express()
 
@@ -14,6 +15,6 @@ hvacController.run()
 
 const port = process.env.PORT || config.server.port
 app.listen(port)
-console.log('Node + Express REST API skeleton server started on port: ' + port)
+debug('Node + Express REST API skeleton server started on port: ' + port)
 
 module.exports = app
