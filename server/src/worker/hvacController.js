@@ -43,6 +43,18 @@ const run = (setTemperature) => {
   worker.on('message', (message) => {
     debug('Worker message: ', message)
   })
+
+  worker.stdout.on('data', (data) => {
+    debug('Worker stdout: ', data)
+  })
+
+  worker.stderr.on('data', (data) => {
+    debug('Worker stderr: ', data)
+  })
+
+  worker.on('exit', (code) => {
+    debug('Worker exit with code: ', code)
+  })
 }
 
 module.exports = {
