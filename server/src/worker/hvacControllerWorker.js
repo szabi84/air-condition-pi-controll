@@ -33,6 +33,62 @@ process.on('message', ({ type, value }) => {
   }
 })
 
+const hasInternetConnection = async () => {
+  return new Promise((resolve) => {
+    require('dns').resolve('www.google.com', function (err) {
+      return resolve(!err)
+    })
+  })
+}
+
+const connectThingspeak = async () => {
+  if (await hasInternetConnection()) {
+    thingSpeakClient = new ThingSpeakClient()
+    thingSpeakClient.attachChannel(1602965, { writeKey: 'U2RG7MRT9WOZ7TMI' }, (err) => {
+      if (err) {
+        process.send(`Thingspeak is offline: ${err}`)
+      } else {
+        process.send('Thingspeak is online')
+      }
+    })
+  }
+}
+
+const updateThingSpeakChannel = async (tempC) => {
+  if (thingSpeakClient) {
+    const remaining = MIN_STATE_TIME - (Date.now() - lastChange) > 0 ? Math.round((MIN_STATE_TIME - (Date.now() - lastChange)) / 1000) : 0
+    const thingSpeakObject = {
+      field4: onlyMonitoring ? 1 : 0,
+      field5: remaining
+    }
+    const status = await airConditionClient.getStatus()
+    process.send(`Aircondition actual status: ${JSON.stringify(status)}`)
+    if (tempC) {
+      thingSpeakObject.field1 = tempC
+    }
+    if (status) {
+      thingSpeakObject.field2 = status.properties.power === 'on' ? 1 : 0
+      thingSpeakObject.field3 = status.properties.temperature
+      power = status.properties.power === 'on' ? 1 : 0
+    }
+
+    return new Promise((resolve) => {
+      thingSpeakClient.updateChannel(1602965, thingSpeakObject, function (err, resp) {
+        if (err) {
+          process.send(`Thingspeak update failed: : ${err}`)
+          connectThingspeak()
+          return resolve('Thingspeak reconnect')
+        }
+        if (!err && resp > 0) {
+          process.send(`Thingspeak update successfully. Entry number was: : ${resp}`)
+        }
+      })
+    })
+  } else {
+    return connectThingspeak()
+  }
+}
+
 const init = async () => {
   process.send('Worker initialization...')
   process.send(`Temperature is set to ${temperatureSet}°C`)
@@ -50,14 +106,7 @@ const init = async () => {
     power = 0
   }
 
-  thingSpeakClient = new ThingSpeakClient()
-  thingSpeakClient.attachChannel(1602965, { writeKey: 'U2RG7MRT9WOZ7TMI' }, (err, res) => {
-    if (err) {
-      process.send(`Thingspeak is offline: ${err}`)
-    } else {
-      process.send('Thingspeak is online')
-    }
-  })
+  await connectThingspeak()
 
   process.send(`Initial state:
     temperatureSet = ${temperatureSet}
@@ -116,31 +165,7 @@ const run = async () => {
         process.send(`${moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize()} left from min state time.`)
       }
     }
-
-    const remaining = MIN_STATE_TIME - (Date.now() - lastChange) > 0 ? Math.round((MIN_STATE_TIME - (Date.now() - lastChange)) / 1000) : 0
-    const thinkSpeakObject = {
-      field4: onlyMonitoring ? 1 : 0,
-      field5: remaining
-    }
-    const status = await airConditionClient.getStatus()
-    process.send(`Aircondition actual status: ${JSON.stringify(status)}`)
-    if (tempC) {
-      thinkSpeakObject.field1 = tempC
-    }
-    if (status) {
-      thinkSpeakObject.field2 = status.properties.power === 'on' ? 1 : 0
-      thinkSpeakObject.field3 = status.properties.temperature
-      power = status.properties.power === 'on' ? 1 : 0
-    }
-
-    thingSpeakClient.updateChannel(1602965, thinkSpeakObject, function (err, resp) {
-      if (err) {
-        process.send(`Thinkspeak update failed: : ${err}`)
-      }
-      if (!err && resp > 0) {
-        process.send(`Thinkspeak update successfully. Entry number was: : ${resp}`)
-      }
-    })
+    await updateThingSpeakChannel(tempC)
     process.send('Iteration finished')
     await delay(60000)
   }
