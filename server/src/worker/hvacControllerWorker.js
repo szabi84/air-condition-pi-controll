@@ -81,7 +81,9 @@ const updateThingSpeakChannel = async (tempC) => {
         }
         if (!err && resp > 0) {
           process.send(`Thingspeak update successfully. Entry number was: : ${resp}`)
+          return resolve('Thingspeak updated')
         }
+        return resolve('Thingspeak update finished')
       })
     })
   } else {
