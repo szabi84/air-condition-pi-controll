@@ -146,7 +146,7 @@ const run = async () => {
         if (power === 1 && (Number(tempC) > temperatureSet + 0.4)) {
           // start shutdown period
           process.send('Air condition power OFF 1')
-          await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet), 0)
+          await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet - 1), 0)
           power = 0
           lastChange = Date.now()
           process.send('Air condition power OFF')
@@ -158,10 +158,10 @@ const run = async () => {
         if (power === 0 && (Number(tempC) < temperatureSet - 0.4)) {
           // start heating period
           process.send('Air condition power ON 1')
-          await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet + 1.4), 1)
+          await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet + 1.8), 1)
           power = 1
           lastChange = Date.now()
-          process.send(`Air condition power ON with ${Math.round(temperatureSet + 1.4)} °C`)
+          process.send(`Air condition power ON with ${Math.round(temperatureSet + 1.8)} °C`)
         }
       } else {
         process.send(`${moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize()} left from min state time.`)
