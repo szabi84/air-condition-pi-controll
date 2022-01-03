@@ -142,8 +142,8 @@ const run = async () => {
 
         process.send(`Evaluation 1:
         power === 1 => ${power === 1}
-        Number(${tempC}) > Number(${temperatureSet} + 0.4) => ${Number(tempC) > temperatureSet + 0.2}`)
-        if (power === 1 && (Number(tempC) > temperatureSet + 0.4)) {
+        Number(${tempC}) > Number(${temperatureSet} + 0.2) => ${Number(tempC) > temperatureSet + 0.2}`)
+        if (power === 1 && (Number(tempC) > temperatureSet + 0.2)) {
           // start shutdown period
           process.send('Air condition power OFF 1')
           await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet - 1), 0)
@@ -154,8 +154,8 @@ const run = async () => {
 
         process.send(`Evaluation 2:
         power === 0 => ${power === 0}
-        Number(${tempC}) < Number(${temperatureSet} - 0.4) => ${Number(tempC) < temperatureSet - 0.2}`)
-        if (power === 0 && (Number(tempC) < temperatureSet - 0.4)) {
+        Number(${tempC}) < Number(${temperatureSet} - 0.2) => ${Number(tempC) < temperatureSet - 0.2}`)
+        if (power === 0 && (Number(tempC) < temperatureSet - 0.2)) {
           // start heating period
           process.send('Air condition power ON 1')
           await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet + 2.5), 1)
