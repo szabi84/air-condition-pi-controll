@@ -7,11 +7,12 @@ const moment = require('moment')
 
 const MIN_STATE_TIME = 1000 * 60 * 15 // 20 minutes
 let temperatureSet = _.isNumber(process.argv[2]) ? Number(process.argv[2]) : Number(process.env.DEFAULT_TEMPERATURE)
-let onlyMonitoring = true
+let onlyMonitoring = !!process.argv[3]
 let airConditionClient
 let thingSpeakClient
 let exit = false
 let power = 0
+let hvacTemperature = 0
 let lastChange = 0
 
 process.on('message', ({ type, value }) => {
@@ -69,6 +70,7 @@ const updateThingSpeakChannel = async (tempC) => {
     if (status) {
       thingSpeakObject.field2 = status.properties.power === 'on' ? 1 : 0
       thingSpeakObject.field3 = status.properties.temperature
+      hvacTemperature = status.properties.temperature
       power = status.properties.power === 'on' ? 1 : 0
     }
 
@@ -104,6 +106,7 @@ const init = async () => {
     } else {
       power = 0
     }
+    hvacTemperature = status.properties.temperature
   } else {
     power = 0
   }
@@ -116,6 +119,15 @@ const init = async () => {
     exit = ${exit}
     power = ${power}
     lastChange = ${new Date(lastChange).toISOString()}`)
+
+  process.send({
+    type: 'STATUS_UPDATE',
+    data: {
+      hvacPower: power === 1,
+      hvacActualTemperature: hvacTemperature,
+      timeRemaining: moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize()
+    }
+  })
   process.send('Worker initialization is finished')
 }
 
@@ -123,12 +135,6 @@ const run = async () => {
   // eslint-disable-next-line no-unmodified-loop-condition
   while (!exit) {
     process.send('---- Iteration started ----')
-    process.send(`Actual state:
-    temperatureSet = ${temperatureSet}
-    onlyMonitoring = ${onlyMonitoring}
-    exit = ${exit}
-    power = ${power}
-    lastChange = ${new Date(lastChange).toISOString()}`)
     const tempC = await readCurrentTemperature()
     if (tempC) {
       process.send(`It's ${tempC}°C currently`)
@@ -169,6 +175,15 @@ const run = async () => {
     }
     await updateThingSpeakChannel(tempC)
     process.send('Iteration finished')
+    process.send({
+      type: 'STATUS_UPDATE',
+      data: {
+        roomTemperature: tempC,
+        hvacPower: power === 1,
+        hvacActualTemperature: hvacTemperature,
+        timeRemaining: moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize()
+      }
+    })
     await delay(60000)
   }
 }

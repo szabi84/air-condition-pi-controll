@@ -1,18 +1,17 @@
 const debug = require('debug')('hvac-controller')
 const { fork } = require('child_process')
 const path = require('path')
+const { models } = require('../database/database')
 
 const DEFAULT_TEMPERATURE = 21
 let worker
 
 const updateSettings = (settings) => {
   debug(`Settings updated: ${settings}`)
-  if (settings.temperature) {
-    _sendMessageWorker({ type: 'SET_TEMPERATURE', value: settings.temperature })
+  if (settings.setRoomTemperature) {
+    _sendMessageWorker({ type: 'SET_TEMPERATURE', value: settings.setRoomTemperature })
   }
-  if (settings.onlyMonitoring !== undefined) {
-    _sendMessageWorker({ type: 'SET_MONITORING', value: settings.onlyMonitoring })
-  }
+  _sendMessageWorker({ type: 'SET_MONITORING', value: settings.setOnlyMonitoring })
 }
 
 const exitWorker = () => {
@@ -27,10 +26,11 @@ const _sendMessageWorker = (message) => {
   }
 }
 
-const run = (setTemperature) => {
+const run = () => {
+  const hvac = models.Hvac.findByPk(1)
   worker = fork(
     path.resolve(__dirname, 'hvacControllerWorker.js'),
-    [setTemperature],
+    [hvac.setRoomTemperature, hvac.setOnlyMonitoring],
     {
       env: {
         DEFAULT_TEMPERATURE
@@ -40,7 +40,13 @@ const run = (setTemperature) => {
     }
   )
 
-  worker.on('message', (message) => {
+  worker.on('message', async (message) => {
+    if (message.type === 'STATUS_UPDATE') {
+      await models.Hvac.update(
+        message.data,
+        { where: { id: 1 } }
+      )
+    }
     debug('Worker message: ', message)
   })
 
