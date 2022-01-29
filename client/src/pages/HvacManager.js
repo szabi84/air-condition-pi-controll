@@ -56,7 +56,7 @@ class HvacManager extends Component {
       await this.fetch('put', `/settings/${hvac.id}`, hvac);
     }
 
-    this.props.history.goBack();
+    this.props.history.push('/');
     await this.getHvac();
   }
 

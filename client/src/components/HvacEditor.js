@@ -67,7 +67,7 @@ const HvacEditor = ({ classes, hvac, onSave, history }) => (
             </Grid>
             <Grid item xs={12}>
               <Button size="small" color="primary" type="submit">Save</Button>
-              <Button size="small" onClick={() => history.goBack()}>Cancel</Button>
+              <Button size="small" onClick={() => history.push('/')}>Cancel</Button>
             </Grid>
           </Grid>
         </form>
