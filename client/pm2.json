@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "name": "hvac-controll",
+      "name": "hvac-controll-client",
       "script": "yarn",
       "args" : "start:prod",
       "interpreter": "/bin/bash"
