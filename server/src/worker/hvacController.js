@@ -26,11 +26,11 @@ const _sendMessageWorker = (message) => {
   }
 }
 
-const run = () => {
-  const hvac = models.Hvac.findByPk(1)
+const run = async () => {
+  const hvac = await models.Hvac.findByPk(1)
   worker = fork(
     path.resolve(__dirname, 'hvacControllerWorker.js'),
-    [hvac.setRoomTemperature, hvac.setOnlyMonitoring],
+    [hvac.dataValues.setRoomTemperature, hvac.dataValues.setOnlyMonitoring],
     {
       env: {
         DEFAULT_TEMPERATURE

@@ -23,8 +23,8 @@ app.get('*', (req, res) => {
   )
 })
 
-database.initialize().then(() => {
-  hvacController.run()
+database.initialize().then(async () => {
+  await hvacController.run()
 
   const port = process.env.PORT || config.server.port
   app.listen(port)

@@ -6,8 +6,8 @@ const AirCondition = require('../helpers/aircondition')
 const moment = require('moment')
 
 const MIN_STATE_TIME = 1000 * 60 * 15 // 20 minutes
-let temperatureSet = _.isNumber(process.argv[2]) ? Number(process.argv[2]) : Number(process.env.DEFAULT_TEMPERATURE)
-let onlyMonitoring = !!process.argv[3]
+let temperatureSet
+let onlyMonitoring
 let airConditionClient
 let thingSpeakClient
 let exit = false
@@ -95,7 +95,10 @@ const updateThingSpeakChannel = async (tempC) => {
 
 const init = async () => {
   process.send('Worker initialization...')
-  process.send(`Temperature is set to ${temperatureSet}°C`)
+  temperatureSet = _.isNumber(process.argv[2]) ? Number(process.argv[2]) : Number(process.env.DEFAULT_TEMPERATURE)
+  process.send(`Temperature is initialized to ${temperatureSet}°C`)
+  onlyMonitoring = process.argv[3] !== undefined && process.argv[3] === 'true'
+  process.send(`${process.argv[3]} OnlyMonitoring is initialized to ${onlyMonitoring}`)
   airConditionClient = new AirCondition()
   const status = await airConditionClient.getStatus()
   if (status) {
