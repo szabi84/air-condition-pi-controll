@@ -181,7 +181,7 @@ const run = async () => {
         roomTemperature: tempC,
         hvacPower: power === 1,
         hvacActualTemperature: hvacTemperature,
-        timeRemaining: moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize()
+        timeRemaining: (Date.now() - lastChange) < MIN_STATE_TIME ? moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize() : '0 minutes'
       }
     })
     await delay(60000)
