@@ -5,13 +5,13 @@ import {
   SnackbarContent,
   IconButton,
 } from '@material-ui/core';
-import { Error as ErrorIcon, Close as CloseIcon } from '@material-ui/icons';
+import {Check as SuccessIcon, Close as CloseIcon} from '@material-ui/icons';
 import { compose, withState } from 'recompose';
 import uuid from 'uuid/v4';
 
 const styles = theme => ({
   snackbarContent: {
-    backgroundColor: theme.palette.error.main,
+    backgroundColor: theme.palette.success.main,
   },
   message: {
     display: 'flex',
@@ -26,7 +26,7 @@ const styles = theme => ({
   },
 });
 
-const ErrorSnackbar = ({ id, message, onClose, classes }) => (
+const SuccessSnackbar = ({ id, message, onClose, classes }) => (
   <Snackbar
     open
     autoHideDuration={6000}
@@ -37,7 +37,7 @@ const ErrorSnackbar = ({ id, message, onClose, classes }) => (
       aria-describedby={id}
       message={
         <span id={id} className={classes.message}>
-          <ErrorIcon className={`${classes.icon} ${classes.iconVariant}`} />
+          <SuccessIcon className={`${classes.icon} ${classes.iconVariant}`} />
           {message}
         </span>
       }
@@ -53,4 +53,4 @@ const ErrorSnackbar = ({ id, message, onClose, classes }) => (
 export default compose(
   withState('id', 'setId', uuid),
   withStyles(styles),
-)(ErrorSnackbar);
+)(SuccessSnackbar);

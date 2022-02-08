@@ -35,6 +35,11 @@ const HvacEditor = ({ classes, hvac, onSave, history }) => (
     {({ handleSubmit }) => (
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Field name="updatedAt">
+                {({ input }) => <TextField label="Last update" autoFocus {...input} disabled={true}/>}
+              </Field>
+            </Grid>
             <Grid item xs={6}>
               <Field name="roomTemperature">
                 {({ input }) => <TextField label="Room temperature" autoFocus {...input} disabled={true}/>}
@@ -46,7 +51,7 @@ const HvacEditor = ({ classes, hvac, onSave, history }) => (
               </Field>
             </Grid>
             <Grid item xs={6}>
-              <Field name="hvacPower">
+              <Field name="hvacPower" type="checkbox">
                 {({ input }) => <FormControlLabel control={<Switch />} label="HVAC power" autoFocus {...input} disabled={true}/>}
               </Field>
             </Grid>

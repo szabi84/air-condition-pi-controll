@@ -7,6 +7,7 @@ import {
 import { compose } from 'recompose';
 
 import ErrorSnackbar from '../components/ErrorSnackbar';
+import SuccessSnackbar from '../components/SuccessSnackbar';
 import HvacEditor from "../components/HvacEditor";
 
 const styles = theme => ({
@@ -22,6 +23,7 @@ class HvacManager extends Component {
     loading: true,
     hvac: null,
     error: null,
+    success: null
   };
 
   componentDidMount() {
@@ -42,7 +44,6 @@ class HvacManager extends Component {
       return await response.json();
     } catch (error) {
       console.error(error);
-
       this.setState({ error });
     }
   }
@@ -58,6 +59,7 @@ class HvacManager extends Component {
 
     this.props.history.push('/');
     await this.getHvac();
+    this.setState({ success: { message: "Updated successful"} });
   }
 
   render() {
@@ -74,6 +76,12 @@ class HvacManager extends Component {
           <ErrorSnackbar
             onClose={() => this.setState({ error: null })}
             message={this.state.error.message}
+          />
+        )}
+        {this.state.success && (
+          <SuccessSnackbar
+            onClose={() => this.setState({ success: null })}
+            message={this.state.success.message}
           />
         )}
       </Fragment>
