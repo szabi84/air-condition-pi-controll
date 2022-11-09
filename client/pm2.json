@@ -1,0 +1,10 @@
+{
+  "apps": [
+    {
+      "name": "hvac-controll-client",
+      "script": "yarn",
+      "args" : "start:prod",
+      "interpreter": "/bin/bash"
+    }
+  ]
+}
