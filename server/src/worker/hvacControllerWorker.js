@@ -6,6 +6,7 @@ const AirCondition = require('../helpers/aircondition')
 const moment = require('moment')
 
 const MIN_STATE_TIME = 1000 * 60 * 15 // 20 minutes
+const MAX_AC_TEMP = 30
 let temperatureSet
 let onlyMonitoring
 let airConditionClient
@@ -167,10 +168,10 @@ const run = async () => {
         if (power === 0 && (Number(tempC) < temperatureSet - 0.2)) {
           // start heating period
           process.send('Air condition power ON 1')
-          await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet + 2.5), 1)
+          await airConditionClient.updateAirConditionStatus(Math.min(Math.round(temperatureSet + 5.5), MAX_AC_TEMP), 1)
           power = 1
           lastChange = Date.now()
-          process.send(`Air condition power ON with ${Math.round(temperatureSet + 2.5)} °C`)
+          process.send(`Air condition power ON with ${Math.min(Math.round(temperatureSet + 5.5), MAX_AC_TEMP)} °C`)
         }
       } else {
         process.send(`${moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize()} left from min state time.`)

@@ -3,7 +3,7 @@
     {
       "name": "hvac-controll-client",
       "script": "yarn",
-      "args" : "start:prod",
+      "args" : "start",
       "interpreter": "/bin/bash"
     }
   ]
