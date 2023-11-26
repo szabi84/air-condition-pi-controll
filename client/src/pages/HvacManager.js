@@ -19,12 +19,15 @@ const styles = theme => ({
 const API = process.env.REACT_APP_API || 'http://localhost:9000';
 
 class HvacManager extends Component {
-  state = {
-    loading: true,
-    hvac: null,
-    error: null,
-    success: null
-  };
+  constructor(props) {
+    super(props)
+    this.state = {
+      loading: true,
+      hvac: null,
+      error: null,
+      success: null
+    }
+  }
 
   componentDidMount() {
     this.getHvac();
@@ -49,7 +52,8 @@ class HvacManager extends Component {
   }
 
   async getHvac() {
-    this.setState({ loading: false, hvac: (await this.fetch('get', '/settings/1')) || null });
+    const hvac = await this.fetch('get', '/settings/1')
+    this.setState({ loading: false, hvac: hvac || null });
   }
 
   saveHvac = async (hvac) => {

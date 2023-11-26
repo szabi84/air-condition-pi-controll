@@ -20,7 +20,7 @@ routes.get('/settings/:id', async (req, res) => {
 routes.put('/settings/:id', async (req, res) => {
   try {
     const data = {
-      setOnlyMonitoring: !!req.body.setOnlyMonitoring
+      controllerMode: req.body.controllerMode
     }
     if (req.body.setRoomTemperature) {
       data.setRoomTemperature = Number(req.body.setRoomTemperature)

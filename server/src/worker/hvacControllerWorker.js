@@ -5,26 +5,37 @@ const { delay } = require('../helpers/util')
 const AirCondition = require('../helpers/aircondition')
 const moment = require('moment')
 
+const ControllerModeType = {
+  NORLMAL: 'normal',
+  STANDBY: 'standby'
+}
+
 const MIN_STATE_TIME = 1000 * 60 * 15 // 20 minutes
 const MAX_AC_TEMP = 30
-let temperatureSet
-let onlyMonitoring
+const controllerSettings = {
+  temperature: 20.5,
+  controllerMode: ControllerModeType.STANDBY,
+  actionDone: false,
+  lastChange: 0
+}
+
 let airConditionClient
 let thingSpeakClient
 let exit = false
 let power = 0
 let hvacTemperature = 0
-let lastChange = 0
 
 process.on('message', ({ type, value }) => {
   switch (type) {
     case 'SET_TEMPERATURE':
-      temperatureSet = Number(value)
+      controllerSettings.temperature = Number(value)
+      controllerSettings.actionDone = false
       process.send(`The temperature is set to ${value}°C`)
       break
-    case 'SET_MONITORING':
-      onlyMonitoring = value
-      process.send(`The onlyMonitoring is set to ${value}`)
+    case 'SET_CONTROLLER_MODE':
+      controllerSettings.controllerMode = value
+      controllerSettings.actionDone = false
+      process.send(`The controller mode is set to ${value}`)
       break
     case 'EXIT':
       exit = true
@@ -58,9 +69,9 @@ const connectThingspeak = async () => {
 
 const updateThingSpeakChannel = async (tempC) => {
   if (thingSpeakClient) {
-    const remaining = MIN_STATE_TIME - (Date.now() - lastChange) > 0 ? Math.round((MIN_STATE_TIME - (Date.now() - lastChange)) / 1000) : 0
+    const remaining = MIN_STATE_TIME - (Date.now() - controllerSettings.lastChange) > 0 ? Math.round((MIN_STATE_TIME - (Date.now() - controllerSettings.lastChange)) / 1000) : 0
     const thingSpeakObject = {
-      field4: onlyMonitoring ? 1 : 0,
+      field4: controllerSettings.controllerMode === ControllerModeType.STANDBY ? 1 : 0,
       field5: remaining
     }
     const status = await airConditionClient.getStatus()
@@ -96,15 +107,15 @@ const updateThingSpeakChannel = async (tempC) => {
 
 const init = async () => {
   process.send('Worker initialization...')
-  temperatureSet = _.isNumber(process.argv[2]) ? Number(process.argv[2]) : Number(process.env.DEFAULT_TEMPERATURE)
-  process.send(`Temperature is initialized to ${temperatureSet}°C`)
-  onlyMonitoring = process.argv[3] !== undefined && process.argv[3] === 'true'
-  process.send(`${process.argv[3]} OnlyMonitoring is initialized to ${onlyMonitoring}`)
+  controllerSettings.temperature = _.isNumber(process.argv[2]) ? Number(process.argv[2]) : Number(process.env.DEFAULT_TEMPERATURE)
+  process.send(`Temperature is initialized to ${controllerSettings.temperature}°C`)
+  controllerSettings.controllerMode = process.argv[3] !== undefined && process.argv[3]
+  process.send(`${process.argv[3]} Controller mode is initialized to '${controllerSettings.controllerMode}'`)
   airConditionClient = new AirCondition()
   const status = await airConditionClient.getStatus()
   if (status) {
     process.send(`Aircondition is online, initial status: ${JSON.stringify(status)}`)
-    lastChange = Date.now()
+    controllerSettings.lastChange = Date.now()
     if (status.properties.power === 'on') {
       power = 1
     } else {
@@ -118,18 +129,18 @@ const init = async () => {
   await connectThingspeak()
 
   process.send(`Initial state:
-    temperatureSet = ${temperatureSet}
-    onlyMonitoring = ${onlyMonitoring}
+    temperatureSet = ${controllerSettings.temperature}
+    controllerMode = ${controllerSettings.controllerMode}
     exit = ${exit}
     power = ${power}
-    lastChange = ${new Date(lastChange).toISOString()}`)
+    lastChange = ${new Date(controllerSettings.lastChange).toISOString()}`)
 
   process.send({
     type: 'STATUS_UPDATE',
     data: {
       hvacPower: power === 1,
       hvacActualTemperature: hvacTemperature,
-      timeRemaining: moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize()
+      timeRemaining: moment.duration(MIN_STATE_TIME - (Date.now() - controllerSettings.lastChange)).humanize()
     }
   })
   process.send('Worker initialization is finished')
@@ -146,35 +157,43 @@ const run = async () => {
       process.send('Failed to read temperature')
     }
 
-    if (!onlyMonitoring) {
-      if (Date.now() - lastChange > MIN_STATE_TIME) {
+    if (controllerSettings.controllerMode === ControllerModeType.NORLMAL) {
+      controllerSettings.actionDone = true
+      if (Date.now() - controllerSettings.lastChange > MIN_STATE_TIME) {
         process.send('Min state time is over.')
 
-        process.send(`Evaluation 1:
-        power === 1 => ${power === 1}
-        Number(${tempC}) > Number(${temperatureSet} + 0.2) => ${Number(tempC) > temperatureSet + 0.2}`)
-        if (power === 1 && (Number(tempC) > temperatureSet + 0.2)) {
+        // For debug:
+        // process.send(`Evaluation 1:
+        // power === 1 => ${power === 1}
+        // Number(${tempC}) > Number(${controllerSettings.temperature} + 0.2) => ${Number(tempC) > controllerSettings.temperature + 0.2}`)
+        if (power === 1 && (Number(tempC) > controllerSettings.temperature + 0.2)) {
           // start shutdown period
           process.send('Air condition power OFF 1')
-          await airConditionClient.updateAirConditionStatus(Math.round(temperatureSet - 1), 0)
+          await airConditionClient.updateAirConditionStatus(Math.round(controllerSettings.temperature - 1), 0)
           power = 0
-          lastChange = Date.now()
+          controllerSettings.lastChange = Date.now()
           process.send('Air condition power OFF')
         }
 
-        process.send(`Evaluation 2:
-        power === 0 => ${power === 0}
-        Number(${tempC}) < Number(${temperatureSet} - 0.2) => ${Number(tempC) < temperatureSet - 0.2}`)
-        if (power === 0 && (Number(tempC) < temperatureSet - 0.2)) {
+        // For debug:
+        // process.send(`Evaluation 2:
+        // power === 0 => ${power === 0}
+        // Number(${tempC}) < Number(${controllerSettings.temperature} - 0.2) => ${Number(tempC) < controllerSettings.temperature - 0.2}`)
+        if (power === 0 && (Number(tempC) < controllerSettings.temperature - 0.2)) {
           // start heating period
           process.send('Air condition power ON 1')
-          await airConditionClient.updateAirConditionStatus(Math.min(Math.round(temperatureSet + 5.5), MAX_AC_TEMP), 1)
+          await airConditionClient.updateAirConditionStatus(Math.min(Math.round(controllerSettings.temperature + 5.5), MAX_AC_TEMP), 1)
           power = 1
-          lastChange = Date.now()
-          process.send(`Air condition power ON with ${Math.min(Math.round(temperatureSet + 5.5), MAX_AC_TEMP)} °C`)
+          controllerSettings.lastChange = Date.now()
+          process.send(`Air condition power ON with ${Math.min(Math.round(controllerSettings.temperature + 5.5), MAX_AC_TEMP)} °C`)
         }
       } else {
-        process.send(`${moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize()} left from min state time.`)
+        process.send(`${moment.duration(MIN_STATE_TIME - (Date.now() - controllerSettings.lastChange)).humanize()} left from min state time.`)
+      }
+    } else if (controllerSettings.controllerMode === ControllerModeType.STANDBY) {
+      if (!controllerSettings.actionDone) {
+        await airConditionClient.updateAirConditionStatus(Math.round(controllerSettings.temperature - 1), 0)
+        controllerSettings.actionDone = true
       }
     }
     await updateThingSpeakChannel(tempC)
@@ -185,7 +204,7 @@ const run = async () => {
         roomTemperature: tempC,
         hvacPower: power === 1,
         hvacActualTemperature: hvacTemperature,
-        timeRemaining: (Date.now() - lastChange) < MIN_STATE_TIME ? moment.duration(MIN_STATE_TIME - (Date.now() - lastChange)).humanize() : '0 minutes'
+        timeRemaining: (Date.now() - controllerSettings.lastChange) < MIN_STATE_TIME ? moment.duration(MIN_STATE_TIME - (Date.now() - controllerSettings.lastChange)).humanize() : '0 minutes'
       }
     })
     await delay(60000)

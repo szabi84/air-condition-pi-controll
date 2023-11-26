@@ -18,11 +18,9 @@ const initialize = async () => {
     hvacPower: Sequelize.BOOLEAN,
     hvacActualTemperature: Sequelize.FLOAT,
     timeRemaining: Sequelize.STRING,
-    setOnlyMonitoring: Sequelize.BOOLEAN,
+    controllerMode: Sequelize.ENUM('normal', 'standby'),
     setRoomTemperature: Sequelize.FLOAT
   })
-  models.Hvac = Hvac
-
   await database.sync()
   const hvac = await Hvac.findByPk(1)
   if (!hvac) {
@@ -32,10 +30,11 @@ const initialize = async () => {
       hvacPower: true,
       hvacActualTemperature: 23,
       timeRemaining: '',
-      setOnlyMonitoring: false,
-      setRoomTemperature: 29.0
+      controllerMode: 'standby',
+      setRoomTemperature: 20.5
     })
   }
+  models.Hvac = Hvac
 }
 
 module.exports = {

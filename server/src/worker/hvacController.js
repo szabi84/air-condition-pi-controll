@@ -11,7 +11,7 @@ const updateSettings = (settings) => {
   if (settings.setRoomTemperature) {
     _sendMessageWorker({ type: 'SET_TEMPERATURE', value: settings.setRoomTemperature })
   }
-  _sendMessageWorker({ type: 'SET_MONITORING', value: settings.setOnlyMonitoring })
+  _sendMessageWorker({ type: 'SET_CONTROLLER_MODE', value: settings.controllerMode })
 }
 
 const exitWorker = () => {
@@ -30,7 +30,7 @@ const run = async () => {
   const hvac = await models.Hvac.findByPk(1)
   worker = fork(
     path.resolve(__dirname, 'hvacControllerWorker.js'),
-    [hvac.dataValues.setRoomTemperature, hvac.dataValues.setOnlyMonitoring],
+    [hvac.dataValues.setRoomTemperature, hvac.dataValues.controllerMode],
     {
       env: {
         DEFAULT_TEMPERATURE

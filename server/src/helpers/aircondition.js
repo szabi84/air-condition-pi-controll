@@ -7,7 +7,7 @@ const RETRY_COUNT = 5
 class AirCondition {
   constructor () {
     this.client = new Gree.Client({
-      host: '192.168.1.204',
+      host: process.env.AC_IP,
       debug: false
     })
     this.lastProperties = {}

@@ -5,7 +5,7 @@ import {
   Button,
   TextField,
   Switch,
-  Grid
+  Grid, FormControl, FormLabel, RadioGroup, Radio
 } from '@material-ui/core';
 import { compose } from 'recompose';
 import { withRouter } from 'react-router-dom';
@@ -28,11 +28,11 @@ const styles = theme => ({
   marginTop: {
     marginTop: theme.spacing(2),
   },
-});
+})
 
-const HvacEditor = ({ classes, hvac, onSave, history }) => (
+const HvacEditor = ({ hvac, onSave, history }) => (
   <Form initialValues={hvac} onSubmit={onSave}>
-    {({ handleSubmit }) => (
+    {({handleSubmit, form}) => (
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -61,8 +61,23 @@ const HvacEditor = ({ classes, hvac, onSave, history }) => (
               </Field>
             </Grid>
             <Grid item xs={6}>
-              <Field name="setOnlyMonitoring" type="checkbox">
-                {({ input }) => <FormControlLabel control={<Switch />} label="Set only monitoring" autoFocus {...input}/>}
+              <Field name="controllerMode">
+                {({ input }) => <FormControl>
+                  <FormLabel id="demo-radio-buttons-group-label">Mode</FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue="normal"
+                    value={input.value}
+                    name="radio-buttons-group"
+                  >
+                    <FormControlLabel value="standby" control={<Radio onClick={() => {
+                      form.change('controllerMode', 'standby')
+                    }}/>} label="standby" />
+                    <FormControlLabel value="normal" control={<Radio onClick={() => {
+                      form.change('controllerMode', 'normal')
+                    }}/>} label="normal" />
+                  </RadioGroup>
+                </FormControl>}
               </Field>
             </Grid>
             <Grid item xs={6}>
@@ -78,9 +93,9 @@ const HvacEditor = ({ classes, hvac, onSave, history }) => (
         </form>
     )}
   </Form>
-);
+)
 
 export default compose(
   withRouter,
   withStyles(styles),
-)(HvacEditor);
+)(HvacEditor)
