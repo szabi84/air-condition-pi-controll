@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "react-scripts start",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider react-scripts start",
     "start:prod": "serve -s build",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
@@ -16,6 +16,8 @@
     "@material-ui/core": "^4.5.1",
     "@material-ui/icons": "^4.5.1",
     "body-parser": "1.19.0",
+    "browserslist": "^4.24.2",
+    "caniuse-lite": "^1.0.30001686",
     "cors": "2.8.5",
     "dotenv": "^14.3.2",
     "final-form": "^4.8.3",
@@ -42,16 +44,7 @@
     "eslint-plugin-react": "^7.28.0",
     "eslint-plugin-standard": "^4.0.1"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+  "browserslist": [
+    ">0.2%"
+  ]
 }

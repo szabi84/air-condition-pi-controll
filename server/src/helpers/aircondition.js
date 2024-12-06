@@ -7,7 +7,7 @@ const RETRY_COUNT = 5
 class AirCondition {
   constructor () {
     this.client = new Gree.Client({
-      host: process.env.AC_IP,
+      host: process.env.AC_IP || '192.168.1.204',
       debug: false
     })
     this.lastProperties = {}
@@ -55,6 +55,7 @@ class AirCondition {
   async updateAirConditionStatus (temperature, power) {
     await this.connect()
     if (!this.connected) {
+      debug('AC is not connected')
       return false
     }
     const properties = {}
